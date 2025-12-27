@@ -10,7 +10,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final TextEditingController _emailController = TextEditingController();
+  final _formGlobalKey = GlobalKey<FormState>();
+  Priority _selectedPriority = Priority.low;
 
   final List<Todo> todos = [
     const Todo(
@@ -45,18 +46,73 @@ class _HomeState extends State<Home> {
             Expanded(child: TodoList(todos: todos)),
 
             // form stuff below here
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(label: Text('Email address')),
-            ),
+            Form(
+              key: _formGlobalKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // todo title
+                  TextFormField(
+                    maxLength: 20,
+                    decoration: const InputDecoration(
+                      label: Text('Todo title'),
+                    ),
+                    validator: (v) {
+                      if (v == null || v.isEmpty) {
+                        return 'You must enter a value for the title.';
+                      }
 
-            const SizedBox(height: 20),
-            FilledButton(
-              onPressed: () {
-                print(_emailController.text);
-              },
-              child: Text('print the email'),
+                      return null;
+                    },
+                  ),
+
+                  // todo description
+                  TextFormField(
+                    maxLength: 40,
+                    decoration: const InputDecoration(
+                      label: Text('Todo description'),
+                    ),
+                    validator: (v) {
+                      if (v == null || v.isEmpty || v.length < 5) {
+                        return 'Enter a description at least 5 chars long.';
+                      }
+
+                      return null;
+                    },
+                  ),
+
+                  // priority
+                  DropdownButtonFormField(
+                    initialValue: _selectedPriority,
+                    decoration: const InputDecoration(
+                      label: Text('Priority of todo'),
+                    ),
+                    items: Priority.values.map((p) {
+                      return DropdownMenuItem(value: p, child: Text(p.title));
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedPriority = value!;
+                      });
+                    },
+                  ),
+
+                  // submit button
+                  const SizedBox(height: 20),
+                  FilledButton(
+                    onPressed: () {
+                      _formGlobalKey.currentState!.validate();
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.grey[800],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    child: const Text('Add'),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
